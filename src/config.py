@@ -27,17 +27,22 @@ for carpeta in [DATA_RAW, DATA_PROCESSED, DATA_PREDICTIONS, MODELS_DIR]:
 HOY = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 TEMPORADA_ACTUAL = datetime.now(timezone.utc).year
 
-# --- Modelo XGBoost (regularizado para evitar sobreajuste) ---
-N_ESTIMATORS = 150
-MAX_DEPTH = 4
-LEARNING_RATE = 0.08
-SUBSAMPLE = 0.75
-COLSAMPLE_BYTREE = 0.75
-REG_ALPHA = 0.1
-REG_LAMBDA = 1.0
+# --- Constantes de Calibración Bayesiana (Pitching Baseline MLB) ---
+LEAGUE_ERA_BASELINE = 4.30
+LEAGUE_WHIP_BASELINE = 1.30
+BAYESIAN_IP_WEIGHT = 30.0  # Entradas teóricas para suavizar muestras pequeñas
+
+# --- Modelo XGBoost (Ajustado para evitar sobreajuste y saturación) ---
+N_ESTIMATORS = 100
+MAX_DEPTH = 3
+LEARNING_RATE = 0.03
+SUBSAMPLE = 0.80
+COLSAMPLE_BYTREE = 0.80
+REG_ALPHA = 1.0   # Regularización L1 más estricta
+REG_LAMBDA = 2.0  # Regularización L2 para suavizar pesos de salida
 RANDOM_STATE = 42
 
-# --- Features del Modelo (SIN is_home_advantage, que era constante) ---
+# --- Features del Modelo ---
 FEATURES_MODELO = [
     "era_pitcher_home", "whip_pitcher_home", "ops_team_home",
     "era_pitcher_away", "whip_pitcher_away", "ops_team_away",
@@ -47,7 +52,3 @@ FEATURES_MODELO = [
     "rest_days_home", "rest_days_away",
     "era_diff", "ops_diff", "win_pct_diff", "run_diff_net"
 ]
-
-# --- Seguridad de Probabilidades ---
-PROB_MIN = 0.20
-PROB_MAX = 0.80
