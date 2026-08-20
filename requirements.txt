@@ -1,15 +1,7 @@
-# ============================================
-# MLB Predictor — Dependencias del Sistema
-# ============================================
-# API y datos
 requests>=2.31.0
-
-# Ciencia de Datos y ML
 pandas>=2.0.0
 numpy>=1.24.0
 scikit-learn>=1.3.0
 xgboost>=2.0.0
-
-# Utilidades
 python-dateutil>=2.8.0
 pytz>=2023.3
