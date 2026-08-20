@@ -1,8 +1,8 @@
 """
 ========================================
-MLB Predictor — Ingenería de Features
+MLB Predictor — Ingeniería de Features
 ========================================
-Procesamiento de datos con Bayesian Shrinkage para lanzadores.
+Procesamiento de datos con Bayesian Shrinkage y variables dinámicas de serie/bullpen.
 """
 
 import pandas as pd
@@ -27,8 +27,49 @@ def bayesian_adjusted_stat(stat_val: float, ip: float, baseline: float, weight: 
     return float((stat_val * ip + baseline * weight) / (ip + weight))
 
 
+def obtener_contexto_serie(home_id: int, away_id: int, fecha: str) -> dict:
+    """Detecta si el juego pertenece a una serie en curso y quién ganó el partido anterior."""
+    hist_home = obtener_historial_juegos(home_id, dias=5)
+    
+    partidos_serie = [
+        g for g in hist_home 
+        if (g.get("home_team_id") == away_id or g.get("away_team_id") == away_id)
+        and g.get("fecha") < fecha
+    ]
+    
+    if not partidos_serie:
+        return {"game_num_series": 1, "prev_game_winner_home": 0}
+    
+    partidos_serie = sorted(partidos_serie, key=lambda x: x["fecha"], reverse=True)
+    ultimo_juego = partidos_serie[0]
+    
+    gano_local_previo = 1 if ultimo_juego.get("home_score", 0) > ultimo_juego.get("away_score", 0) else 0
+    
+    return {
+        "game_num_series": len(partidos_serie) + 1,
+        "prev_game_winner_home": gano_local_previo
+    }
+
+
+def calcular_uso_bullpen(team_id: int) -> float:
+    """Calcula el índice de desgaste del bullpen en los últimos 3 días."""
+    juegos_recientes = obtener_historial_juegos(team_id, dias=3)
+    if not juegos_recientes:
+        return 0.0
+    
+    carga = 0.0
+    for g in juegos_recientes:
+        diff = abs(g.get("home_score", 0) - g.get("away_score", 0))
+        if diff <= 3:
+            carga += 1.5
+        else:
+            carga += 0.5
+            
+    return carga
+
+
 def construir_dataset(juegos: List[Dict]) -> pd.DataFrame:
-    """Construye las features para una lista de juegos de la MLB."""
+    """Construye las features completas para una lista de juegos de la MLB."""
     if not juegos:
         return pd.DataFrame()
 
@@ -44,6 +85,7 @@ def construir_dataset(juegos: List[Dict]) -> pd.DataFrame:
         try:
             home_id = juego.get("home_team_id")
             away_id = juego.get("away_team_id")
+            fecha_juego = juego.get("fecha")
 
             if not home_id or not away_id:
                 continue
@@ -70,7 +112,7 @@ def construir_dataset(juegos: List[Dict]) -> pd.DataFrame:
             era_raw_away = float(away_p_stats.get("era", LEAGUE_ERA_BASELINE))
             whip_raw_away = float(away_p_stats.get("whip", LEAGUE_WHIP_BASELINE))
 
-            # Suavizado Bayesiano para prevenir distorsiones por muestra pequeña
+            # Suavizado Bayesiano
             era_home = bayesian_adjusted_stat(era_raw_home, ip_home, LEAGUE_ERA_BASELINE)
             whip_home = bayesian_adjusted_stat(whip_raw_home, ip_home, LEAGUE_WHIP_BASELINE)
 
@@ -87,7 +129,7 @@ def construir_dataset(juegos: List[Dict]) -> pd.DataFrame:
             run_diff_home = float(home_stand.get("run_diff", 0))
             run_diff_away = float(away_stand.get("run_diff", 0))
 
-            # Forma Reciente (Últimos 10 juegos)
+            # Forma Reciente
             hist_home = obtener_historial_juegos(home_id, dias=10)
             hist_away = obtener_historial_juegos(away_id, dias=10)
 
@@ -97,15 +139,21 @@ def construir_dataset(juegos: List[Dict]) -> pd.DataFrame:
             wins_a = sum(1 for g in hist_away if g.get("away_score", 0) > g.get("home_score", 0))
             forma_away = wins_a / len(hist_away) if hist_away else 0.500
 
+            # Variables Dinámicas
+            ctx_serie = obtener_contexto_serie(home_id, away_id, fecha_juego)
+            bullpen_home = calcular_uso_bullpen(home_id)
+            bullpen_away = calcular_uso_bullpen(away_id)
+
             # Diferenciales
             era_diff = era_away - era_home
             ops_diff = ops_home - ops_away
             win_pct_diff = win_pct_home - win_pct_away
             run_diff_net = run_diff_home - run_diff_away
+            bullpen_load_diff = bullpen_away - bullpen_home
 
             dataset.append({
                 "game_pk": juego.get("game_pk"),
-                "fecha": juego.get("fecha"),
+                "fecha": fecha_juego,
                 "home_team_name": juego.get("home_team_name"),
                 "away_team_name": juego.get("away_team_name"),
                 "home_pitcher_name": juego.get("home_pitcher_name", "TBD"),
@@ -127,7 +175,10 @@ def construir_dataset(juegos: List[Dict]) -> pd.DataFrame:
                 "era_diff": era_diff,
                 "ops_diff": ops_diff,
                 "win_pct_diff": win_pct_diff,
-                "run_diff_net": run_diff_net
+                "run_diff_net": run_diff_net,
+                "game_num_series": ctx_serie["game_num_series"],
+                "prev_game_winner_home": ctx_serie["prev_game_winner_home"],
+                "bullpen_load_diff": bullpen_load_diff
             })
         except Exception as e:
             logger.warning(f"Error procesando juego {juego.get('game_pk')}: {e}")
