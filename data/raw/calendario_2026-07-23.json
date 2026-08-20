@@ -1,0 +1,74 @@
+{
+  "juegos": [
+    {
+      "game_pk": 824893,
+      "fecha": "2026-07-23",
+      "temporada": 2026,
+      "venue": "Truist Park",
+      "away_team_id": 135,
+      "away_team_name": "San Diego Padres",
+      "home_team_id": 144,
+      "home_team_name": "Atlanta Braves",
+      "away_pitcher_id": 606996,
+      "away_pitcher_name": "Kyle Hart",
+      "home_pitcher_id": 519242,
+      "home_pitcher_name": "Chris Sale"
+    },
+    {
+      "game_pk": 824406,
+      "fecha": "2026-07-23",
+      "temporada": 2026,
+      "venue": "Progressive Field",
+      "away_team_id": 142,
+      "away_team_name": "Minnesota Twins",
+      "home_team_id": 114,
+      "home_team_name": "Cleveland Guardians",
+      "away_pitcher_id": 671737,
+      "away_pitcher_name": "Taj Bradley",
+      "home_pitcher_id": 668909,
+      "home_pitcher_name": "Gavin Williams"
+    },
+    {
+      "game_pk": 822785,
+      "fecha": "2026-07-23",
+      "temporada": 2026,
+      "venue": "Rogers Centre",
+      "away_team_id": 139,
+      "away_team_name": "Tampa Bay Rays",
+      "home_team_id": 141,
+      "home_team_name": "Toronto Blue Jays",
+      "away_pitcher_id": 668984,
+      "away_pitcher_name": "Casey Legumina",
+      "home_pitcher_id": 669456,
+      "home_pitcher_name": "Shane Bieber"
+    },
+    {
+      "game_pk": 823042,
+      "fecha": "2026-07-23",
+      "temporada": 2026,
+      "venue": "Busch Stadium",
+      "away_team_id": 109,
+      "away_team_name": "Arizona Diamondbacks",
+      "home_team_id": 138,
+      "home_team_name": "St. Louis Cardinals",
+      "away_pitcher_id": 694297,
+      "away_pitcher_name": "Brandon Pfaadt",
+      "home_pitcher_id": 700241,
+      "home_pitcher_name": "Michael McGreevy"
+    },
+    {
+      "game_pk": 824247,
+      "fecha": "2026-07-23",
+      "temporada": 2026,
+      "venue": "Comerica Park",
+      "away_team_id": 118,
+      "away_team_name": "Kansas City Royals",
+      "home_team_id": 116,
+      "home_team_name": "Detroit Tigers",
+      "away_pitcher_id": 677976,
+      "away_pitcher_name": "Randy Dobnak",
+      "home_pitcher_id": 675512,
+      "home_pitcher_name": "Troy Melton"
+    }
+  ]
+}
