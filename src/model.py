@@ -2,7 +2,7 @@
 ========================================
 MLB Predictor — Modelo y Predicción
 ========================================
-Pipeline con calibración sigmoide cruzada y decay temporal de datos reales.
+Pipeline con calibración sigmoide cruzada y decay temporal.
 """
 
 import os
@@ -42,15 +42,12 @@ def _calcular_pesos_temporales(df_fechas: pd.Series, decay_rate: float = 0.005) 
 
 
 def _entrenar_con_historial_real(temporada: int = TEMPORADA_ACTUAL) -> CalibratedClassifierCV:
-    """
-    Entrena exclusivamente con datos reales de la MLB extraídos de los últimos 60 días.
-    """
+    """Entrena exclusivamente con datos reales de la MLB extraídos de los últimos 60 días."""
     logger.info("Construyendo dataset histórico real desde la API de la MLB...")
 
     hoy = datetime.now()
     juegos_con_resultado = []
 
-    # Extraer hasta 60 días para asegurar una muestra estadística representativa real
     for i in range(1, 61):
         fecha_pasada = (hoy - timedelta(days=i)).strftime("%Y-%m-%d")
         juegos_dia = obtener_calendario_diario(fecha_pasada, temporada, solo_futuros=False)
@@ -104,7 +101,6 @@ def _entrenar_con_historial_real(temporada: int = TEMPORADA_ACTUAL) -> Calibrate
         n_jobs=2
     )
 
-    # Calibración sigmoide integrada sobre la validación cruzada del modelo base
     calibrated_model = CalibratedClassifierCV(
         estimator=base_xgb,
         method="sigmoid",
@@ -173,10 +169,9 @@ def predecir_juegos(df_features: pd.DataFrame, modelo: CalibratedClassifierCV) -
                 "era_away": round(row.get("era_pitcher_away", 0), 2),
                 "ops_home": round(row.get("ops_team_home", 0), 3),
                 "ops_away": round(row.get("ops_team_away", 0), 3),
-                "win_pct_home": round(row.get("win_pct_home", 0), 3),
-                "win_pct_away": round(row.get("win_pct_away", 0), 3),
-                "era_diff": round(row.get("era_diff", 0), 2),
-                "ops_diff": round(row.get("ops_diff", 0), 3),
+                "game_num_series": int(row.get("game_num_series", 1)),
+                "prev_game_winner_home": int(row.get("prev_game_winner_home", 0)),
+                "bullpen_load_diff": round(row.get("bullpen_load_diff", 0), 2)
             }
         })
 
@@ -223,8 +218,8 @@ def generar_reporte(resultados: List[Dict], fecha: str) -> str:
         "",
         "## 🧠 Metodología",
         "",
-        "Modelo **XGBoost** con regularización L1/L2, decaimiento temporal y calibración sigmoide cruzada.",
-        "Ajuste bayesiano de métricas de lanzadores abridores hacia la media de la liga.",
+        "Modelo **XGBoost** calibrado con features dinámicas de serie (`game_num_series`, `prev_game_winner_home`) y desbalance de bullpen.",
+        "Ajuste bayesiano de métricas de lanzadores abridores.",
         "",
         "Fuente: [MLB Stats API](https://statsapi.mlb.com)",
         "",
@@ -237,7 +232,7 @@ def generar_reporte(resultados: List[Dict], fecha: str) -> str:
 
 
 def ejecutar_pipeline(fecha: str = None):
-    """Pipeline completo sin simulaciones."""
+    """Pipeline completo."""
     if fecha is None:
         fecha = datetime.now().strftime("%Y-%m-%d")
 
