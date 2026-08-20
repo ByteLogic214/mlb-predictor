@@ -2,14 +2,16 @@
 ========================================
 MLB Predictor — Ingesta de Datos (Fetcher)
 ========================================
-Consulta robusta a la API gratuita de MLB (statsapi.mlb.com).
-Obtiene: calendario diario, lanzadores abridores, estadísticas de equipos y pitchers.
+Consulta robusta a la API gratuita de MLB.
+Correcciones: endpoints limpios, obtención de pitcher real para entrenamiento,
+y resultado de juegos vía linescore ligero.
 """
 
 import requests
 import time
 import pandas as pd
 from typing import List, Dict, Optional
+from datetime import datetime, timedelta
 from src.config import MLB_API_BASE, MLB_SPORT_ID, MLB_LEAGUE_IDS, TEMPORADA_ACTUAL, DATA_RAW
 from src.utils import logger, guardar_json
 
@@ -20,67 +22,142 @@ HEADERS = {
 
 
 def _get(url: str, params: Optional[dict] = None, max_reintentos: int = 3) -> Optional[dict]:
-    """
-    Wrapper robusto para GET con reintentos exponenciales y manejo de errores.
-    """
+    """Wrapper robusto para GET con reintentos exponenciales."""
     for intento in range(max_reintentos):
         try:
             resp = requests.get(url, params=params, headers=HEADERS, timeout=30)
             resp.raise_for_status()
             return resp.json()
         except requests.exceptions.RequestException as e:
-            logger.warning(f"Intento {intento + 1}/{max_reintentos} fallido: {url} | Error: {e}")
+            logger.warning(f"Reintento {intento + 1}/{max_reintentos}: {url} | {e}")
             time.sleep(2 ** intento)
-    logger.error(f"Fallo definitivo al consultar: {url}")
+    logger.error(f"Fallo definitivo: {url}")
     return None
 
 
-def obtener_calendario_diario(fecha: str, temporada: int = TEMPORADA_ACTUAL) -> List[Dict]:
+def obtener_calendario_diario(fecha: str, temporada: int = TEMPORADA_ACTUAL, solo_futuros: bool = True) -> List[Dict]:
     """
-    Obtiene el calendario de juegos para una fecha específica.
-    Incluye los lanzadores abridores probables (probablePitcher).
+    Obtiene juegos para una fecha. Si solo_futuros=True, incluye probablePitcher.
+    Si solo_futuros=False (entrenamiento), omite hydrate para evitar datos vacíos.
     """
     url = f"{MLB_API_BASE}/schedule"
     params = {
         "date": fecha,
         "sportId": MLB_SPORT_ID,
-        "hydrate": "probablePitcher",
-        "fields": "dates,games,gamePk,gameDate,teams,away,home,team,id,name,probablePitcher,id,fullName,venue,name"
+        "gameTypes": "R",
+        "fields": "dates,games,gamePk,gameDate,status,abstractGameState,teams,away,home,team,id,name,venue,name"
     }
+    if solo_futuros:
+        params["hydrate"] = "probablePitcher"
+        params["fields"] = "dates,games,gamePk,gameDate,status,abstractGameState,teams,away,home,team,id,name,probablePitcher,id,fullName,venue,name"
 
     data = _get(url, params)
     if not data or "dates" not in data or not data["dates"]:
-        logger.warning(f"No hay juegos programados para {fecha}")
         return []
 
     juegos = []
     for fecha_data in data["dates"]:
         for juego in fecha_data.get("games", []):
+            # Solo incluir juegos de temporada regular finalizados o programados
+            estado = juego.get("status", {}).get("abstractGameState", "")
+            if estado not in ["Final", "Live", "Preview", "Scheduled", "Pre-Game"]:
+                continue
+
             registro = {
                 "game_pk": juego.get("gamePk"),
                 "fecha": fecha,
                 "temporada": temporada,
+                "estado": estado,
                 "venue": juego.get("venue", {}).get("name", "Desconocido"),
                 "away_team_id": juego.get("teams", {}).get("away", {}).get("team", {}).get("id"),
                 "away_team_name": juego.get("teams", {}).get("away", {}).get("team", {}).get("name"),
                 "home_team_id": juego.get("teams", {}).get("home", {}).get("team", {}).get("id"),
                 "home_team_name": juego.get("teams", {}).get("home", {}).get("team", {}).get("name"),
-                "away_pitcher_id": juego.get("teams", {}).get("away", {}).get("probablePitcher", {}).get("id"),
-                "away_pitcher_name": juego.get("teams", {}).get("away", {}).get("probablePitcher", {}).get("fullName"),
-                "home_pitcher_id": juego.get("teams", {}).get("home", {}).get("probablePitcher", {}).get("id"),
-                "home_pitcher_name": juego.get("teams", {}).get("home", {}).get("probablePitcher", {}).get("fullName"),
             }
+
+            if solo_futuros:
+                registro["away_pitcher_id"] = juego.get("teams", {}).get("away", {}).get("probablePitcher", {}).get("id")
+                registro["away_pitcher_name"] = juego.get("teams", {}).get("away", {}).get("probablePitcher", {}).get("fullName")
+                registro["home_pitcher_id"] = juego.get("teams", {}).get("home", {}).get("probablePitcher", {}).get("id")
+                registro["home_pitcher_name"] = juego.get("teams", {}).get("home", {}).get("probablePitcher", {}).get("fullName")
+            else:
+                # Para entrenamiento, los pitchers reales se obtienen del boxscore
+                registro["away_pitcher_id"] = None
+                registro["home_pitcher_id"] = None
+                registro["away_pitcher_name"] = None
+                registro["home_pitcher_name"] = None
+
             juegos.append(registro)
 
-    logger.info(f"{len(juegos)} juegos encontrados para {fecha}")
-    guardar_json({"juegos": juegos}, f"{DATA_RAW}/calendario_{fecha}.json")
+    logger.info(f"{len(juegos)} juegos en {fecha}")
     return juegos
 
 
+def obtener_pitchers_reales(game_pk: int) -> Dict:
+    """
+    Obtiene los IDs de los lanzadores abridores reales de un juego ya jugado.
+    Usa el endpoint de boxscore que es más ligero que feed/live.
+    """
+    url = f"{MLB_API_BASE}/game/{game_pk}/boxscore"
+    data = _get(url)
+    if not data:
+        return {}
+
+    try:
+        away_pitcher = data.get("teams", {}).get("away", {}).get("pitchers", [None])[0]
+        home_pitcher = data.get("teams", {}).get("home", {}).get("pitchers", [None])[0]
+        # Obtener nombres del roster
+        away_players = data.get("teams", {}).get("away", {}).get("players", {})
+        home_players = data.get("teams", {}).get("home", {}).get("players", {})
+
+        away_name = None
+        home_name = None
+        if away_pitcher and f"ID{away_pitcher}" in away_players:
+            away_name = away_players[f"ID{away_pitcher}"].get("person", {}).get("fullName")
+        if home_pitcher and f"ID{home_pitcher}" in home_players:
+            home_name = home_players[f"ID{home_pitcher}"].get("person", {}).get("fullName")
+
+        return {
+            "away_pitcher_id": away_pitcher,
+            "away_pitcher_name": away_name,
+            "home_pitcher_id": home_pitcher,
+            "home_pitcher_name": home_name
+        }
+    except Exception as e:
+        logger.warning(f"Error obteniendo pitchers reales para {game_pk}: {e}")
+        return {}
+
+
+def obtener_resultado_juego(game_pk: int) -> Optional[int]:
+    """
+    Retorna 1 si ganó el LOCAL, 0 si ganó el VISITANTE, None si no disponible.
+    Usa el endpoint linescore (más ligero que feed/live).
+    """
+    url = f"{MLB_API_BASE}/game/{game_pk}/linescore"
+    data = _get(url)
+    if not data:
+        return None
+
+    try:
+        teams = data.get("teams", {})
+        home_runs = teams.get("home", {}).get("runs", 0)
+        away_runs = teams.get("away", {}).get("runs", 0)
+
+        if home_runs is None or away_runs is None:
+            return None
+        if home_runs > away_runs:
+            return 1
+        elif away_runs > home_runs:
+            return 0
+        else:
+            return None  # Empate (improbable en MLB pero posible)
+    except Exception as e:
+        logger.warning(f"Error parseando resultado de {game_pk}: {e}")
+        return None
+
+
 def obtener_estadisticas_equipo(team_id: int, temporada: int = TEMPORADA_ACTUAL) -> Dict:
-    """
-    Obtiene estadísticas ofensivas (hitting) y de pitcheo (pitching) de un equipo.
-    """
+    """Estadísticas ofensivas y de pitcheo de un equipo."""
     stats = {"hitting": {}, "pitching": {}}
 
     for grupo in ["hitting", "pitching"]:
@@ -99,15 +176,11 @@ def obtener_estadisticas_equipo(team_id: int, temporada: int = TEMPORADA_ACTUAL)
             if splits:
                 stats[grupo] = splits[0].get("stat", {})
 
-    # Guardar backup
-    guardar_json(stats, f"{DATA_RAW}/team_{team_id}_stats.json")
     return stats
 
 
 def obtener_estadisticas_lanzador(person_id: int, temporada: int = TEMPORADA_ACTUAL) -> Dict:
-    """
-    Obtiene estadísticas de pitcheo de un lanzador específico.
-    """
+    """Estadísticas de pitcheo de un lanzador."""
     if not person_id:
         return {}
 
@@ -128,15 +201,11 @@ def obtener_estadisticas_lanzador(person_id: int, temporada: int = TEMPORADA_ACT
     if not splits:
         return {}
 
-    stats = splits[0].get("stat", {})
-    guardar_json(stats, f"{DATA_RAW}/pitcher_{person_id}_stats.json")
-    return stats
+    return splits[0].get("stat", {})
 
 
 def obtener_standings(temporada: int = TEMPORADA_ACTUAL) -> pd.DataFrame:
-    """
-    Obtiene las posiciones actuales para calcular % victorias y diferencial de carreras.
-    """
+    """Posiciones actuales con % victorias y diferencial de carreras."""
     url = f"{MLB_API_BASE}/standings"
     params = {
         "leagueId": MLB_LEAGUE_IDS,
@@ -164,18 +233,14 @@ def obtener_standings(temporada: int = TEMPORADA_ACTUAL) -> pd.DataFrame:
                 "run_diff": equipo.get("runsScored", 0) - equipo.get("runsAllowed", 0)
             })
 
-    df = pd.DataFrame(filas)
-    guardar_json(filas, f"{DATA_RAW}/standings_{temporada}.json")
-    return df
+    return pd.DataFrame(filas)
 
 
 def obtener_historial_juegos(team_id: int, dias: int = 10, temporada: int = TEMPORADA_ACTUAL) -> List[Dict]:
-    """
-    Obtiene los últimos N juegos finalizados de un equipo para calcular forma reciente.
-    """
-    from datetime import datetime, timedelta
-    fecha_fin = datetime.now().strftime("%Y-%m-%d")
-    fecha_ini = (datetime.now() - timedelta(days=dias + 15)).strftime("%Y-%m-%d")
+    """Últimos N juegos finalizados de un equipo."""
+    hoy = datetime.now()
+    fecha_fin = hoy.strftime("%Y-%m-%d")
+    fecha_ini = (hoy - timedelta(days=dias + 20)).strftime("%Y-%m-%d")
 
     url = f"{MLB_API_BASE}/schedule"
     params = {
@@ -183,7 +248,7 @@ def obtener_historial_juegos(team_id: int, dias: int = 10, temporada: int = TEMP
         "startDate": fecha_ini,
         "endDate": fecha_fin,
         "sportId": MLB_SPORT_ID,
-        "gameTypes": "R",  # Solo temporada regular
+        "gameTypes": "R",
         "fields": "dates,games,gamePk,gameDate,status,abstractGameState,teams,away,home,score"
     }
 
@@ -202,6 +267,5 @@ def obtener_historial_juegos(team_id: int, dias: int = 10, temporada: int = TEMP
                     "away_score": juego.get("teams", {}).get("away", {}).get("score", 0),
                 })
 
-    # Ordenar por fecha descendente y tomar los últimos N
     juegos = sorted(juegos, key=lambda x: x["fecha"], reverse=True)[:dias]
     return juegos
