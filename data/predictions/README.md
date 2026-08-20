@@ -1,6 +1,6 @@
 # ⚾ Predicciones MLB — 2026-08-20
 
-> Generado: 2026-08-20 10:59 UTC
+> Generado: 2026-08-20 17:28 UTC
 
 ---
 
@@ -17,8 +17,8 @@
 | Matchup | Pick | Prob. Local | Prob. Visitante | Confianza | Lanzador Local | Lanzador Visitante |
 |---------|------|-------------|-----------------|-----------|----------------|--------------------|
 | St. Louis Cardinals @ Cincinnati Reds | **AWAY** | 37.0% | 63.0% | ALTA | Brady Singer | Michael McGreevy |
-| San Francisco Giants @ Cleveland Guardians | **HOME** | 61.3% | 38.7% | MEDIA | Gavin Williams | Landen Roupp |
-| Toronto Blue Jays @ Tampa Bay Rays | **HOME** | 61.7% | 38.3% | MEDIA | Ian Seymour | Shane Bieber |
+| San Francisco Giants @ Cleveland Guardians | **HOME** | 61.5% | 38.5% | MEDIA | Gavin Williams | Landen Roupp |
+| Toronto Blue Jays @ Tampa Bay Rays | **HOME** | 61.9% | 38.1% | MEDIA | Ian Seymour | Shane Bieber |
 | Athletics @ Kansas City Royals | **HOME** | 66.4% | 33.6% | ALTA | Randy Dobnak | Gage Jump |
 | Atlanta Braves @ Chicago White Sox | **HOME** | 51.2% | 48.8% | BAJA | Anthony Kay | Grant Holmes |
 | Seattle Mariners @ Milwaukee Brewers | **HOME** | 63.4% | 36.6% | ALTA | Robert Gasser | George Kirby |
