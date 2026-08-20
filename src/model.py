@@ -2,7 +2,7 @@
 ========================================
 MLB Predictor — Modelo y Predicción
 ========================================
-Pipeline con calibración sigmoide cruzada y decay temporal.
+Pipeline con calibración sigmoide cruzada, decay temporal y notificación a Telegram.
 """
 
 import os
@@ -27,6 +27,7 @@ from src.fetcher import (
     obtener_pitchers_reales
 )
 from src.features import construir_dataset
+from src.telegram_bot import enviar_predicciones_telegram
 from src.utils import logger, guardar_json
 
 RUTA_MODELO_CALIBRADO = os.path.join(MODELS_DIR, "calibrated_xgb_mlb.pkl")
@@ -232,7 +233,7 @@ def generar_reporte(resultados: List[Dict], fecha: str) -> str:
 
 
 def ejecutar_pipeline(fecha: str = None):
-    """Pipeline completo."""
+    """Pipeline completo con notificación automática."""
     if fecha is None:
         fecha = datetime.now().strftime("%Y-%m-%d")
 
@@ -247,6 +248,7 @@ def ejecutar_pipeline(fecha: str = None):
     modelo = cargar_o_entrenar_modelo()
     resultados = predecir_juegos(df, modelo)
 
+    # Guardar archivos locales
     ruta_json = os.path.join(DATA_PREDICTIONS, f"predicciones_{fecha}.json")
     guardar_json({"fecha": fecha, "predicciones": resultados}, ruta_json)
 
@@ -259,4 +261,7 @@ def ejecutar_pipeline(fecha: str = None):
     with open(ruta_readme, "w", encoding="utf-8") as f:
         f.write(reporte_md)
 
-    logger.info("✅ Pipeline completado")
+    # Disparar alerta a Telegram
+    enviar_predicciones_telegram(resultados, fecha)
+
+    logger.info("✅ Pipeline completado exitosamente")
