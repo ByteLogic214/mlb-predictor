@@ -32,17 +32,17 @@ LEAGUE_ERA_BASELINE = 4.30
 LEAGUE_WHIP_BASELINE = 1.30
 BAYESIAN_IP_WEIGHT = 30.0  # Entradas teóricas para suavizar muestras pequeñas
 
-# --- Modelo XGBoost (Ajustado para evitar sobreajuste y saturación) ---
+# --- Modelo XGBoost ---
 N_ESTIMATORS = 100
 MAX_DEPTH = 3
 LEARNING_RATE = 0.03
 SUBSAMPLE = 0.80
 COLSAMPLE_BYTREE = 0.80
-REG_ALPHA = 1.0   # Regularización L1 más estricta
-REG_LAMBDA = 2.0  # Regularización L2 para suavizar pesos de salida
+REG_ALPHA = 1.0   # Regularización L1
+REG_LAMBDA = 2.0  # Regularización L2
 RANDOM_STATE = 42
 
-# --- Features del Modelo ---
+# --- Features del Modelo (Incluye métricas dinámicas de serie y bullpen) ---
 FEATURES_MODELO = [
     "era_pitcher_home", "whip_pitcher_home", "ops_team_home",
     "era_pitcher_away", "whip_pitcher_away", "ops_team_away",
@@ -50,5 +50,6 @@ FEATURES_MODELO = [
     "run_diff_home", "run_diff_away",
     "forma_home", "forma_away",
     "rest_days_home", "rest_days_away",
-    "era_diff", "ops_diff", "win_pct_diff", "run_diff_net"
+    "era_diff", "ops_diff", "win_pct_diff", "run_diff_net",
+    "game_num_series", "prev_game_winner_home", "bullpen_load_diff"
 ]
