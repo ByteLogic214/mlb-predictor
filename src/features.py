@@ -1,161 +1,136 @@
 """
 ========================================
-MLB Predictor — Ingeniería de Características
+MLB Predictor — Ingenería de Features
 ========================================
-Construye features con diferenciales relativos (era_diff, ops_diff, etc.)
-para evitar que el modelo dependa de valores absolutos descontextualizados.
-Agrega validación de coherencia local/visitante.
+Procesamiento de datos con Bayesian Shrinkage para lanzadores.
 """
 
 import pandas as pd
 import numpy as np
 from typing import List, Dict
+from src.config import (
+    FEATURES_MODELO, LEAGUE_ERA_BASELINE, LEAGUE_WHIP_BASELINE, BAYESIAN_IP_WEIGHT
+)
 from src.fetcher import (
-    obtener_estadisticas_equipo,
     obtener_estadisticas_lanzador,
+    obtener_estadisticas_equipo,
     obtener_standings,
     obtener_historial_juegos
 )
 from src.utils import logger
 
 
-def _safe_float(val, default=0.0):
-    try:
-        return float(val) if val is not None else default
-    except (ValueError, TypeError):
-        return default
-
-
-def _safe_int(val, default=0):
-    try:
-        return int(val) if val is not None else default
-    except (ValueError, TypeError):
-        return default
-
-
-def construir_features_juego(juego: Dict, standings_df: pd.DataFrame) -> Dict:
-    """
-    Construye el vector de features para un juego.
-    CORRECCIÓN: Valida que home_team_id y away_team_id no sean None.
-    """
-    home_id = juego.get("home_team_id")
-    away_id = juego.get("away_team_id")
-    home_pitcher = juego.get("home_pitcher_id")
-    away_pitcher = juego.get("away_pitcher_id")
-
-    if not home_id or not away_id:
-        raise ValueError(f"IDs de equipo inválidos en juego {juego.get('game_pk')}")
-
-    # --- Estadísticas de Equipos ---
-    home_team_stats = obtener_estadisticas_equipo(home_id)
-    away_team_stats = obtener_estadisticas_equipo(away_id)
-
-    # --- Estadísticas de Lanzadores ---
-    home_pitcher_stats = obtener_estadisticas_lanzador(home_pitcher) if home_pitcher else {}
-    away_pitcher_stats = obtener_estadisticas_lanzador(away_pitcher) if away_pitcher else {}
-
-    # --- Standings ---
-    home_stand = standings_df[standings_df["team_id"] == home_id]
-    away_stand = standings_df[standings_df["team_id"] == away_id]
-
-    home_win_pct = home_stand["win_pct"].values[0] if not home_stand.empty else 0.500
-    away_win_pct = away_stand["win_pct"].values[0] if not away_stand.empty else 0.500
-    home_run_diff = home_stand["run_diff"].values[0] if not home_stand.empty else 0
-    away_run_diff = away_stand["run_diff"].values[0] if not away_stand.empty else 0
-
-    # --- Forma Reciente ---
-    home_historial = obtener_historial_juegos(home_id, dias=10)
-    away_historial = obtener_historial_juegos(away_id, dias=10)
-
-    home_forma = sum(
-        1 for g in home_historial
-        if g.get("home_score", 0) > g.get("away_score", 0)
-    ) / max(len(home_historial), 1)
-
-    away_forma = sum(
-        1 for g in away_historial
-        if g.get("away_score", 0) > g.get("home_score", 0)
-    ) / max(len(away_historial), 1)
-
-    # --- Descanso del lanzador (proxy por disponibilidad de stats) ---
-    rest_days_home = 4 if home_pitcher_stats else 0
-    rest_days_away = 4 if away_pitcher_stats else 0
-
-    # --- Valores base con defaults realistas ---
-    era_home = _safe_float(home_pitcher_stats.get("era"), 4.20)
-    whip_home = _safe_float(home_pitcher_stats.get("whip"), 1.30)
-    era_away = _safe_float(away_pitcher_stats.get("era"), 4.20)
-    whip_away = _safe_float(away_pitcher_stats.get("whip"), 1.30)
-
-    ops_home = _safe_float(home_team_stats.get("hitting", {}).get("ops"), 0.720)
-    ops_away = _safe_float(away_team_stats.get("hitting", {}).get("ops"), 0.720)
-
-    # --- DIFERENCIALES (features clave para evitar sobreajuste) ---
-    era_diff = era_away - era_home          # + = ventaja para local (away ERA peor)
-    ops_diff = ops_home - ops_away          # + = ventaja para local
-    win_pct_diff = home_win_pct - away_win_pct
-    run_diff_net = home_run_diff - away_run_diff
-
-    features = {
-        "game_pk": juego["game_pk"],
-        "fecha": juego["fecha"],
-        "home_team_id": home_id,
-        "home_team_name": juego.get("home_team_name", "Unknown"),
-        "away_team_id": away_id,
-        "away_team_name": juego.get("away_team_name", "Unknown"),
-        "home_pitcher_id": home_pitcher,
-        "home_pitcher_name": juego.get("home_pitcher_name"),
-        "away_pitcher_id": away_pitcher,
-        "away_pitcher_name": juego.get("away_pitcher_name"),
-
-        # Stats individuales
-        "era_pitcher_home": era_home,
-        "whip_pitcher_home": whip_home,
-        "ops_team_home": ops_home,
-        "era_pitcher_away": era_away,
-        "whip_pitcher_away": whip_away,
-        "ops_team_away": ops_away,
-
-        # Standings
-        "win_pct_home": _safe_float(home_win_pct, 0.500),
-        "win_pct_away": _safe_float(away_win_pct, 0.500),
-        "run_diff_home": _safe_int(home_run_diff, 0),
-        "run_diff_away": _safe_int(away_run_diff, 0),
-
-        # Forma reciente
-        "forma_home": _safe_float(home_forma, 0.5),
-        "forma_away": _safe_float(away_forma, 0.5),
-
-        # Descanso
-        "rest_days_home": rest_days_home,
-        "rest_days_away": rest_days_away,
-
-        # Diferenciales (nuevos — evitan saturación)
-        "era_diff": era_diff,
-        "ops_diff": ops_diff,
-        "win_pct_diff": win_pct_diff,
-        "run_diff_net": run_diff_net,
-    }
-
-    logger.info(f"Features OK: {features['away_team_name']} @ {features['home_team_name']}")
-    return features
+def bayesian_adjusted_stat(stat_val: float, ip: float, baseline: float, weight: float = BAYESIAN_IP_WEIGHT) -> float:
+    """Aplica suavizado bayesiano empujando las métricas de muestras pequeñas hacia la media de la liga."""
+    if pd.isna(ip) or ip <= 0 or pd.isna(stat_val):
+        return baseline
+    return float((stat_val * ip + baseline * weight) / (ip + weight))
 
 
 def construir_dataset(juegos: List[Dict]) -> pd.DataFrame:
-    """Construye DataFrame de features con manejo robusto de errores."""
-    standings_df = obtener_standings()
-
-    registros = []
-    for juego in juegos:
-        try:
-            feat = construir_features_juego(juego, standings_df)
-            registros.append(feat)
-        except Exception as e:
-            logger.error(f"Error en juego {juego.get('game_pk')}: {e}")
-
-    if not registros:
+    """Construye las features para una lista de juegos de la MLB."""
+    if not juegos:
         return pd.DataFrame()
 
-    df = pd.DataFrame(registros)
-    logger.info(f"Dataset: {len(df)} filas × {len(df.columns)} cols")
-    return df
+    standings = obtener_standings()
+    standings_dict = {}
+    if not standings.empty:
+        for _, row in standings.iterrows():
+            standings_dict[row["team_id"]] = row.to_dict()
+
+    dataset = []
+
+    for juego in juegos:
+        try:
+            home_id = juego.get("home_team_id")
+            away_id = juego.get("away_team_id")
+
+            if not home_id or not away_id:
+                continue
+
+            # Stats Equipos
+            home_team_stats = obtener_estadisticas_equipo(home_id)
+            away_team_stats = obtener_estadisticas_equipo(away_id)
+
+            ops_home = float(home_team_stats.get("hitting", {}).get("ops", 0.735))
+            ops_away = float(away_team_stats.get("hitting", {}).get("ops", 0.725))
+
+            # Pitchers Abridores
+            home_p_id = juego.get("home_pitcher_id")
+            away_p_id = juego.get("away_pitcher_id")
+
+            home_p_stats = obtener_estadisticas_lanzador(home_p_id) if home_p_id else {}
+            away_p_stats = obtener_estadisticas_lanzador(away_p_id) if away_p_id else {}
+
+            ip_home = float(home_p_stats.get("inningsPitched", 0))
+            era_raw_home = float(home_p_stats.get("era", LEAGUE_ERA_BASELINE))
+            whip_raw_home = float(home_p_stats.get("whip", LEAGUE_WHIP_BASELINE))
+
+            ip_away = float(away_p_stats.get("inningsPitched", 0))
+            era_raw_away = float(away_p_stats.get("era", LEAGUE_ERA_BASELINE))
+            whip_raw_away = float(away_p_stats.get("whip", LEAGUE_WHIP_BASELINE))
+
+            # Suavizado Bayesiano para prevenir distorsiones por muestra pequeña
+            era_home = bayesian_adjusted_stat(era_raw_home, ip_home, LEAGUE_ERA_BASELINE)
+            whip_home = bayesian_adjusted_stat(whip_raw_home, ip_home, LEAGUE_WHIP_BASELINE)
+
+            era_away = bayesian_adjusted_stat(era_raw_away, ip_away, LEAGUE_ERA_BASELINE)
+            whip_away = bayesian_adjusted_stat(whip_raw_away, ip_away, LEAGUE_WHIP_BASELINE)
+
+            # Standings Metrics
+            home_stand = standings_dict.get(home_id, {})
+            away_stand = standings_dict.get(away_id, {})
+
+            win_pct_home = float(home_stand.get("win_pct", 0.500))
+            win_pct_away = float(away_stand.get("win_pct", 0.500))
+
+            run_diff_home = float(home_stand.get("run_diff", 0))
+            run_diff_away = float(away_stand.get("run_diff", 0))
+
+            # Forma Reciente (Últimos 10 juegos)
+            hist_home = obtener_historial_juegos(home_id, dias=10)
+            hist_away = obtener_historial_juegos(away_id, dias=10)
+
+            wins_h = sum(1 for g in hist_home if g.get("home_score", 0) > g.get("away_score", 0))
+            forma_home = wins_h / len(hist_home) if hist_home else 0.500
+
+            wins_a = sum(1 for g in hist_away if g.get("away_score", 0) > g.get("home_score", 0))
+            forma_away = wins_a / len(hist_away) if hist_away else 0.500
+
+            # Diferenciales
+            era_diff = era_away - era_home
+            ops_diff = ops_home - ops_away
+            win_pct_diff = win_pct_home - win_pct_away
+            run_diff_net = run_diff_home - run_diff_away
+
+            dataset.append({
+                "game_pk": juego.get("game_pk"),
+                "fecha": juego.get("fecha"),
+                "home_team_name": juego.get("home_team_name"),
+                "away_team_name": juego.get("away_team_name"),
+                "home_pitcher_name": juego.get("home_pitcher_name", "TBD"),
+                "away_pitcher_name": juego.get("away_pitcher_name", "TBD"),
+                "era_pitcher_home": era_home,
+                "whip_pitcher_home": whip_home,
+                "ops_team_home": ops_home,
+                "era_pitcher_away": era_away,
+                "whip_pitcher_away": whip_away,
+                "ops_team_away": ops_away,
+                "win_pct_home": win_pct_home,
+                "win_pct_away": win_pct_away,
+                "run_diff_home": run_diff_home,
+                "run_diff_away": run_diff_away,
+                "forma_home": forma_home,
+                "forma_away": forma_away,
+                "rest_days_home": 4,
+                "rest_days_away": 4,
+                "era_diff": era_diff,
+                "ops_diff": ops_diff,
+                "win_pct_diff": win_pct_diff,
+                "run_diff_net": run_diff_net
+            })
+        except Exception as e:
+            logger.warning(f"Error procesando juego {juego.get('game_pk')}: {e}")
+            continue
+
+    return pd.DataFrame(dataset)
