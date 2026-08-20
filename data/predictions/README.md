@@ -1,44 +1,48 @@
 # ⚾ Predicciones MLB — 2026-08-20
 
-> Generado automáticamente por MLB Predictor vía GitHub Actions
-> Fecha de ejecución: 2026-08-20 05:29 UTC
+> Generado: 2026-08-20 05:59 UTC
+
 
 ---
 
-## 📊 Resumen del Día
-**Total de juegos analizados:** 9
-**Picks de alta confianza (>65%):** 8
+## 📊 Resumen
+- **Juegos**: 9
+- **Alta confianza**: 9
+- **Media confianza**: 0
+- **Baja confianza**: 0
 
 ---
 
-## 🎯 Predicciones Detalladas
+## 🎯 Predicciones
 
 | Matchup | Pick | Prob. Local | Prob. Visitante | Confianza | Lanzador Local | Lanzador Visitante |
 |---------|------|-------------|-----------------|-----------|----------------|--------------------|
-| St. Louis Cardinals @ Cincinnati Reds | **AWAY** | 4.7% | 95.3% | ALTA | Brady Singer | Michael McGreevy |
-| San Francisco Giants @ Cleveland Guardians | **HOME** | 76.8% | 23.2% | ALTA | Gavin Williams | Landen Roupp |
-| Toronto Blue Jays @ Tampa Bay Rays | **HOME** | 85.2% | 14.8% | ALTA | Ian Seymour | Shane Bieber |
-| Athletics @ Kansas City Royals | **HOME** | 86.7% | 13.3% | ALTA | Randy Dobnak | Gage Jump |
-| Atlanta Braves @ Chicago White Sox | **AWAY** | 17.5% | 82.5% | ALTA | Anthony Kay | Grant Holmes |
-| Seattle Mariners @ Milwaukee Brewers | **HOME** | 87.0% | 13.0% | ALTA | Robert Gasser | George Kirby |
-| New York Yankees @ Baltimore Orioles | **HOME** | 62.3% | 37.7% | MEDIA | Kyle Bradish | Gerrit Cole |
-| Washington Nationals @ Texas Rangers | **AWAY** | 16.9% | 83.1% | ALTA | Jacob deGrom | Andrew Alvarez |
-| Los Angeles Angels @ Houston Astros | **HOME** | 97.6% | 2.4% | ALTA | Peter Lambert | Grayson Rodriguez |
+| St. Louis Cardinals @ Cincinnati Reds | **AWAY** | 20.0% | 80.0% | ALTA | Brady Singer | Michael McGreevy |
+| San Francisco Giants @ Cleveland Guardians | **AWAY** | 24.5% | 75.5% | ALTA | Gavin Williams | Landen Roupp |
+| Toronto Blue Jays @ Tampa Bay Rays | **HOME** | 80.0% | 20.0% | ALTA | Ian Seymour | Shane Bieber |
+| Athletics @ Kansas City Royals | **HOME** | 80.0% | 20.0% | ALTA | Randy Dobnak | Gage Jump |
+| Atlanta Braves @ Chicago White Sox | **AWAY** | 20.0% | 80.0% | ALTA | Anthony Kay | Grant Holmes |
+| Seattle Mariners @ Milwaukee Brewers | **HOME** | 80.0% | 20.0% | ALTA | Robert Gasser | George Kirby |
+| New York Yankees @ Baltimore Orioles | **AWAY** | 20.0% | 80.0% | ALTA | Kyle Bradish | Gerrit Cole |
+| Washington Nationals @ Texas Rangers | **HOME** | 73.8% | 26.2% | ALTA | Jacob deGrom | Andrew Alvarez |
+| Los Angeles Angels @ Houston Astros | **HOME** | 80.0% | 20.0% | ALTA | Peter Lambert | Grayson Rodriguez |
 
 ---
 
 ## 🧠 Metodología
 
-El modelo utiliza **XGBoost** entrenado con las siguientes variables:
+Modelo **XGBoost** regularizado (max_depth=4, reg_alpha=0.1) con calibración logística.
+Probabilidades clippeadas al rango [20%, 80%] para reflejar la varianza inherente del béisbol.
 
-- **ERA** y **WHIP** del lanzador abridor
-- **OPS** (On-base Plus Slugging) del equipo
-- **Win %** y **diferencial de carreras** del standings
-- **Forma reciente** (últimos 10 juegos)
-- **Ventaja de localía**
+**Features principales:**
+- ERA, WHIP del lanzador abridor
+- OPS del equipo
+- Win % y diferencial de carreras
+- Forma reciente (últimos 10 juegos)
+- **Diferenciales**: `era_diff`, `ops_diff`, `win_pct_diff`
 
-Fuente de datos: [MLB Stats API](https://statsapi.mlb.com) (API oficial y gratuita de MLB).
+Fuente: [MLB Stats API](https://statsapi.mlb.com)
 
 ---
 
-*Este reporte se actualiza automáticamente todos los días.*
+*Actualizado automáticamente vía GitHub Actions.*
