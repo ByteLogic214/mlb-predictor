@@ -1,53 +1,38 @@
-# ============================================
-# MLB Predictor — GitHub Actions
-# Automatización diaria y manual de predicciones MLB
-# ============================================
 name: MLB Daily Predictions
 
 on:
-  # Disparador manual desde la pestaña "Actions" en GitHub (web o móvil)
   workflow_dispatch:
     inputs:
       fecha:
-        description: 'Fecha a predecir (YYYY-MM-DD). Dejar vacío para usar hoy.'
+        description: 'Fecha a predecir (YYYY-MM-DD). Vacío = hoy.'
         required: false
         default: ''
-  
-  # Disparador automático diario a las 13:00 UTC (08:00 AM CST / 09:00 AM EST)
-  # Ajusta el cron según tu zona horaria preferida.
   schedule:
     - cron: '0 13 * * *'
 
 jobs:
   predict:
     runs-on: ubuntu-latest
-    
     permissions:
-      # Permiso para hacer commit automático de los resultados
       contents: write
     
     steps:
-      # --- 1. Checkout del repositorio ---
-      - name: 📥 Checkout del repositorio
+      - name: 📥 Checkout
         uses: actions/checkout@v4
         with:
-          # Token integrado para poder hacer push de los resultados
           token: ${{ secrets.GITHUB_TOKEN }}
       
-      # --- 2. Configurar Python ---
-      - name: 🐍 Configurar Python 3.11
+      - name: 🐍 Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       
-      # --- 3. Instalar dependencias ---
-      - name: 📦 Instalar dependencias
+      - name: 📦 Dependencias
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       
-      # --- 4. Ejecutar el pipeline de predicción ---
-      - name: ⚾ Ejecutar predicciones MLB
+      - name: ⚾ Ejecutar predicciones
         run: |
           if [ -n "${{ github.event.inputs.fecha }}" ]; then
             python main.py "${{ github.event.inputs.fecha }}"
@@ -55,21 +40,15 @@ jobs:
             python main.py
           fi
       
-      # --- 5. Commit y push automático de los resultados ---
-      - name: 💾 Guardar resultados en el repositorio
+      - name: 💾 Commit resultados
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          
-          # Agregar solo los archivos de datos generados
-          git add data/
-          git add models/
-          
-          # Solo hacer commit si hay cambios
+          git add data/ models/
           if git diff --cached --quiet; then
-            echo "Sin cambios para commitear."
+            echo "Sin cambios."
           else
             FECHA=$(date +%Y-%m-%d)
-            git commit -m "🤖 Predicciones MLB del día $FECHA [bot]"
+            git commit -m "🤖 Predicciones MLB $FECHA [bot]"
             git push
           fi
