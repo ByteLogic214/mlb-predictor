@@ -1,0 +1,105 @@
+{
+  "fecha": "2026-09-10",
+  "predicciones": [
+    {
+      "game_pk": 824872,
+      "fecha": "2026-09-10",
+      "matchup": "Tampa Bay Rays @ Atlanta Braves",
+      "prediccion": "AWAY",
+      "prob_home_win": 0.431,
+      "prob_away_win": 0.569,
+      "confianza": "MEDIA",
+      "home_pitcher": "Martín Pérez",
+      "away_pitcher": "Nick Martinez",
+      "features_destacadas": {
+        "era_home": 3.31,
+        "era_away": 3.13,
+        "ops_home": 0.799,
+        "ops_away": 0.695,
+        "game_num_series": 3,
+        "prev_game_winner_home": 0,
+        "bullpen_load_diff": 0.0
+      }
+    },
+    {
+      "game_pk": 823413,
+      "fecha": "2026-09-10",
+      "matchup": "Houston Astros @ Philadelphia Phillies",
+      "prediccion": "HOME",
+      "prob_home_win": 0.625,
+      "prob_away_win": 0.375,
+      "confianza": "ALTA",
+      "home_pitcher": "Zack Wheeler",
+      "away_pitcher": "Cristian Javier",
+      "features_destacadas": {
+        "era_home": 3.34,
+        "era_away": 5.08,
+        "ops_home": 0.879,
+        "ops_away": 1.017,
+        "game_num_series": 3,
+        "prev_game_winner_home": 1,
+        "bullpen_load_diff": 0.0
+      }
+    },
+    {
+      "game_pk": 823088,
+      "fecha": "2026-09-10",
+      "matchup": "Texas Rangers @ Seattle Mariners",
+      "prediccion": "HOME",
+      "prob_home_win": 0.508,
+      "prob_away_win": 0.492,
+      "confianza": "BAJA",
+      "home_pitcher": "Logan Gilbert",
+      "away_pitcher": "Jacob deGrom",
+      "features_destacadas": {
+        "era_home": 3.8,
+        "era_away": 4.02,
+        "ops_home": 0.834,
+        "ops_away": 0.782,
+        "game_num_series": 3,
+        "prev_game_winner_home": 0,
+        "bullpen_load_diff": 1.0
+      }
+    },
+    {
+      "game_pk": 823499,
+      "fecha": "2026-09-10",
+      "matchup": "Colorado Rockies @ New York Yankees",
+      "prediccion": "HOME",
+      "prob_home_win": 0.697,
+      "prob_away_win": 0.303,
+      "confianza": "ALTA",
+      "home_pitcher": "Max Fried",
+      "away_pitcher": "Ryan Feltner",
+      "features_destacadas": {
+        "era_home": 3.11,
+        "era_away": 5.56,
+        "ops_home": 0.761,
+        "ops_away": 0.846,
+        "game_num_series": 3,
+        "prev_game_winner_home": 1,
+        "bullpen_load_diff": 0.0
+      }
+    },
+    {
+      "game_pk": 824550,
+      "fecha": "2026-09-10",
+      "matchup": "Pittsburgh Pirates @ Chicago White Sox",
+      "prediccion": "HOME",
+      "prob_home_win": 0.635,
+      "prob_away_win": 0.365,
+      "confianza": "ALTA",
+      "home_pitcher": "Hagen Smith",
+      "away_pitcher": "Jared Jones",
+      "features_destacadas": {
+        "era_home": 3.0,
+        "era_away": 4.42,
+        "ops_home": 0.734,
+        "ops_away": 0.76,
+        "game_num_series": 3,
+        "prev_game_winner_home": 0,
+        "bullpen_load_diff": 1.0
+      }
+    }
+  ]
+}
