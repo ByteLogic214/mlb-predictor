@@ -1,0 +1,305 @@
+{
+  "fecha": "2026-09-19",
+  "predicciones": [
+    {
+      "game_pk": 824545,
+      "fecha": "2026-09-19",
+      "matchup": "Detroit Tigers @ Chicago White Sox",
+      "prediccion": "HOME",
+      "prob_home_win": 0.617,
+      "prob_away_win": 0.383,
+      "confianza": "MEDIA",
+      "home_pitcher": "Sean Burke",
+      "away_pitcher": "Jackson Jobe",
+      "features_destacadas": {
+        "era_home": 3.52,
+        "era_away": 4.0,
+        "ops_home": 0.743,
+        "ops_away": 0.854,
+        "game_num_series": 3,
+        "prev_game_winner_home": 0,
+        "bullpen_load_diff": -1.0
+      }
+    },
+    {
+      "game_pk": 824788,
+      "fecha": "2026-09-19",
+      "matchup": "Milwaukee Brewers @ Baltimore Orioles",
+      "prediccion": "AWAY",
+      "prob_home_win": 0.427,
+      "prob_away_win": 0.573,
+      "confianza": "MEDIA",
+      "home_pitcher": "Trevor Rogers",
+      "away_pitcher": "Robert Gasser",
+      "features_destacadas": {
+        "era_home": 4.23,
+        "era_away": 4.3,
+        "ops_home": 0.867,
+        "ops_away": 0.831,
+        "game_num_series": 2,
+        "prev_game_winner_home": 0,
+        "bullpen_load_diff": 1.0
+      }
+    },
+    {
+      "game_pk": 822921,
+      "fecha": "2026-09-19",
+      "matchup": "Boston Red Sox @ Tampa Bay Rays",
+      "prediccion": "HOME",
+      "prob_home_win": 0.549,
+      "prob_away_win": 0.451,
+      "confianza": "BAJA",
+      "home_pitcher": "Freddy Peralta",
+      "away_pitcher": "Brayan Bello",
+      "features_destacadas": {
+        "era_home": 4.61,
+        "era_away": 4.64,
+        "ops_home": 0.695,
+        "ops_away": 0.76,
+        "game_num_series": 2,
+        "prev_game_winner_home": 0,
+        "bullpen_load_diff": 0.0
+      }
+    },
+    {
+      "game_pk": 823571,
+      "fecha": "2026-09-19",
+      "matchup": "Philadelphia Phillies @ New York Mets",
+      "prediccion": "HOME",
+      "prob_home_win": 0.551,
+      "prob_away_win": 0.449,
+      "confianza": "MEDIA",
+      "home_pitcher": "Christian Scott",
+      "away_pitcher": "Andrew Painter",
+      "features_destacadas": {
+        "era_home": 3.88,
+        "era_away": 5.28,
+        "ops_home": 0.748,
+        "ops_away": 0.879,
+        "game_num_series": 3,
+        "prev_game_winner_home": 1,
+        "bullpen_load_diff": 1.0
+      }
+    },
+    {
+      "game_pk": 824380,
+      "fecha": "2026-09-19",
+      "matchup": "Athletics @ Cleveland Guardians",
+      "prediccion": "HOME",
+      "prob_home_win": 0.656,
+      "prob_away_win": 0.344,
+      "confianza": "ALTA",
+      "home_pitcher": "Tanner Bibee",
+      "away_pitcher": "Jacob Lopez",
+      "features_destacadas": {
+        "era_home": 4.18,
+        "era_away": 4.87,
+        "ops_home": 0.815,
+        "ops_away": 0.684,
+        "game_num_series": 2,
+        "prev_game_winner_home": 1,
+        "bullpen_load_diff": -1.0
+      }
+    },
+    {
+      "game_pk": 824461,
+      "fecha": "2026-09-19",
+      "matchup": "Chicago Cubs @ Cincinnati Reds",
+      "prediccion": "AWAY",
+      "prob_home_win": 0.399,
+      "prob_away_win": 0.601,
+      "confianza": "MEDIA",
+      "home_pitcher": "Nick Lodolo",
+      "away_pitcher": "Matthew Boyd",
+      "features_destacadas": {
+        "era_home": 4.93,
+        "era_away": 4.19,
+        "ops_home": 0.885,
+        "ops_away": 0.948,
+        "game_num_series": 2,
+        "prev_game_winner_home": 1,
+        "bullpen_load_diff": 1.0
+      }
+    },
+    {
+      "game_pk": 823330,
+      "fecha": "2026-09-19",
+      "matchup": "Kansas City Royals @ Pittsburgh Pirates",
+      "prediccion": "HOME",
+      "prob_home_win": 0.64,
+      "prob_away_win": 0.36,
+      "confianza": "ALTA",
+      "home_pitcher": "Bubba Chandler",
+      "away_pitcher": "Noah Cameron",
+      "features_destacadas": {
+        "era_home": 4.28,
+        "era_away": 3.91,
+        "ops_home": 0.759,
+        "ops_away": 0.811,
+        "game_num_series": 2,
+        "prev_game_winner_home": 1,
+        "bullpen_load_diff": -1.0
+      }
+    },
+    {
+      "game_pk": 822843,
+      "fecha": "2026-09-19",
+      "matchup": "Toronto Blue Jays @ Texas Rangers",
+      "prediccion": "HOME",
+      "prob_home_win": 0.503,
+      "prob_away_win": 0.497,
+      "confianza": "BAJA",
+      "home_pitcher": "Cal Quantrill",
+      "away_pitcher": "José Soriano",
+      "features_destacadas": {
+        "era_home": 3.2,
+        "era_away": 3.67,
+        "ops_home": 0.763,
+        "ops_away": 0.666,
+        "game_num_series": 1,
+        "prev_game_winner_home": 0,
+        "bullpen_load_diff": -1.0
+      }
+    },
+    {
+      "game_pk": 824137,
+      "fecha": "2026-09-19",
+      "matchup": "Atlanta Braves @ Houston Astros",
+      "prediccion": "AWAY",
+      "prob_home_win": 0.475,
+      "prob_away_win": 0.525,
+      "confianza": "BAJA",
+      "home_pitcher": "Hayden Wesneski",
+      "away_pitcher": "Grant Holmes",
+      "features_destacadas": {
+        "era_home": 3.93,
+        "era_away": 3.63,
+        "ops_home": 1.031,
+        "ops_away": 0.81,
+        "game_num_series": 1,
+        "prev_game_winner_home": 0,
+        "bullpen_load_diff": 0.0
+      }
+    },
+    {
+      "game_pk": 823003,
+      "fecha": "2026-09-19",
+      "matchup": "Washington Nationals @ St. Louis Cardinals",
+      "prediccion": "AWAY",
+      "prob_home_win": 0.498,
+      "prob_away_win": 0.502,
+      "confianza": "BAJA",
+      "home_pitcher": "Michael McGreevy",
+      "away_pitcher": "Andrew Alvarez",
+      "features_destacadas": {
+        "era_home": 3.9,
+        "era_away": 3.57,
+        "ops_home": 0.818,
+        "ops_away": 0.911,
+        "game_num_series": 1,
+        "prev_game_winner_home": 0,
+        "bullpen_load_diff": 1.0
+      }
+    },
+    {
+      "game_pk": 824304,
+      "fecha": "2026-09-19",
+      "matchup": "Seattle Mariners @ Colorado Rockies",
+      "prediccion": "AWAY",
+      "prob_home_win": 0.491,
+      "prob_away_win": 0.509,
+      "confianza": "BAJA",
+      "home_pitcher": "Jose Quintana",
+      "away_pitcher": "Bryce Miller",
+      "features_destacadas": {
+        "era_home": 4.86,
+        "era_away": 4.21,
+        "ops_home": 0.845,
+        "ops_away": 0.858,
+        "game_num_series": 1,
+        "prev_game_winner_home": 0,
+        "bullpen_load_diff": 1.0
+      }
+    },
+    {
+      "game_pk": 825029,
+      "fecha": "2026-09-19",
+      "matchup": "New York Yankees @ Arizona Diamondbacks",
+      "prediccion": "AWAY",
+      "prob_home_win": 0.425,
+      "prob_away_win": 0.575,
+      "confianza": "MEDIA",
+      "home_pitcher": "Brandon Pfaadt",
+      "away_pitcher": "Cam Schlittler",
+      "features_destacadas": {
+        "era_home": 3.87,
+        "era_away": 2.28,
+        "ops_home": 0.863,
+        "ops_away": 0.788,
+        "game_num_series": 1,
+        "prev_game_winner_home": 0,
+        "bullpen_load_diff": -1.0
+      }
+    },
+    {
+      "game_pk": 823249,
+      "fecha": "2026-09-19",
+      "matchup": "Miami Marlins @ San Diego Padres",
+      "prediccion": "HOME",
+      "prob_home_win": 0.534,
+      "prob_away_win": 0.466,
+      "confianza": "BAJA",
+      "home_pitcher": "Casey Mize",
+      "away_pitcher": "Eury Pérez",
+      "features_destacadas": {
+        "era_home": 3.81,
+        "era_away": 4.04,
+        "ops_home": 0.816,
+        "ops_away": 0.79,
+        "game_num_series": 1,
+        "prev_game_winner_home": 0,
+        "bullpen_load_diff": 2.0
+      }
+    },
+    {
+      "game_pk": 823899,
+      "fecha": "2026-09-19",
+      "matchup": "San Francisco Giants @ Los Angeles Dodgers",
+      "prediccion": "HOME",
+      "prob_home_win": 0.627,
+      "prob_away_win": 0.373,
+      "confianza": "ALTA",
+      "home_pitcher": "Tarik Skubal",
+      "away_pitcher": "Yunior Marte",
+      "features_destacadas": {
+        "era_home": 2.97,
+        "era_away": 3.71,
+        "ops_home": 0.811,
+        "ops_away": 0.718,
+        "game_num_series": 1,
+        "prev_game_winner_home": 0,
+        "bullpen_load_diff": 1.0
+      }
+    },
+    {
+      "game_pk": 823976,
+      "fecha": "2026-09-19",
+      "matchup": "Minnesota Twins @ Los Angeles Angels",
+      "prediccion": "HOME",
+      "prob_home_win": 0.514,
+      "prob_away_win": 0.486,
+      "confianza": "BAJA",
+      "home_pitcher": "Reid Detmers",
+      "away_pitcher": "Joe Ryan",
+      "features_destacadas": {
+        "era_home": 3.5,
+        "era_away": 3.92,
+        "ops_home": 0.762,
+        "ops_away": 0.757,
+        "game_num_series": 2,
+        "prev_game_winner_home": 1,
+        "bullpen_load_diff": 1.0
+      }
+    }
+  ]
+}
